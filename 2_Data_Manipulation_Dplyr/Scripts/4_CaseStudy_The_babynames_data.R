@@ -74,3 +74,32 @@ ggplot(names_filtered, aes(x = year, y = fraction_max, color = name)) +
   geom_line()
 
 # Windows Functions ====
+## Using ratios to describe the frequency of a name ====
+babynames_fraction <- babynames %>%
+  group_by(year) %>%
+  mutate(year_total = sum(number)) %>%
+  ungroup() %>%
+  mutate(fraction = number / year_total)
+
+babynames_fraction %>%
+  # Arrange the data in order of name, then year 
+  arrange(name, year) %>%
+  # Group the data by name
+  group_by(name) %>%
+  # Add a ratio column that contains the ratio between each year 
+  mutate(ratio = fraction / lag(fraction))
+
+## Biggest jumps in a name ====
+babynames_ratios_filtered <- babynames_fraction %>%
+  arrange(name, year) %>%
+  group_by(name) %>%
+  mutate(ratio = fraction / lag(fraction)) %>%
+  filter(fraction >= 0.00001)
+
+babynames_ratios_filtered %>%
+  # Extract the largest ratio from each name 
+  top_n(1, ratio) %>%
+  # Sort the ratio column in descending order 
+  arrange(desc(ratio)) %>%
+  # Filter for fractions greater than or equal to 0.001
+  filter(fraction >= 0.001)
